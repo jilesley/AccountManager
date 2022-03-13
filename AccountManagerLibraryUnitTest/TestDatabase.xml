@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Acounts>
+  <Account>
+    <Name>Test Account 1</Name>
+    <Balance>1234.56</Balance>
+    <Categories>
+      <Category Id="1">
+        <Name>Category 1</Name>
+        <RequiredCategories>
+          <Id>1</Id>
+        </RequiredCategories>
+      </Category>
+    </Categories>
+    <Transactions>
+      <Transaction>
+        <Amount>-100</Amount>
+        <Date>
+          <Day>12</Day>
+          <Month>3</Month>
+          <Year>4567</Year>
+        </Date>
+        <Description>Transaction 1</Description>
+        <Categories>
+          <Id>1</Id>
+        </Categories>
+      </Transaction>
+    </Transactions>
+  </Account>
+</Acounts>

@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<Acounts>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Accounts>
   <Account>
     <Name>Test Account 1</Name>
     <Balance>1234.56</Balance>
@@ -15,9 +15,9 @@
       <Transaction>
         <Amount>-100</Amount>
         <Date>
-          <Day>12</Day>
-          <Month>3</Month>
-          <Year>4567</Year>
+          <Day>29</Day>
+          <Month>11</Month>
+          <Year>1996</Year>
         </Date>
         <Description>Transaction 1</Description>
         <Categories>
@@ -26,4 +26,4 @@
       </Transaction>
     </Transactions>
   </Account>
-</Acounts>
+</Accounts>

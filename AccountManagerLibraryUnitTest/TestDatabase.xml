@@ -4,10 +4,10 @@
     <Name>Test Account 1</Name>
     <Balance>1234.56</Balance>
     <Categories>
-      <Category Id="1">
+      <Category Id="0">
         <Name>Category 1</Name>
         <RequiredCategories>
-          <Id>1</Id>
+          <Id>0</Id>
         </RequiredCategories>
       </Category>
     </Categories>
@@ -21,7 +21,7 @@
         </Date>
         <Description>Transaction 1</Description>
         <Categories>
-          <Id>1</Id>
+          <Id>0</Id>
         </Categories>
       </Transaction>
     </Transactions>

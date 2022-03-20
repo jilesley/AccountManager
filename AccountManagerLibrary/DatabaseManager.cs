@@ -99,10 +99,55 @@ namespace AccountManager
 
 
                 Dictionary<Category, int> categoryIds = new();
+                Dictionary<Category, XElement> xRequiredCategories = new();
                 int catId = 0;
 
                 foreach (Category category in account.Categories)
                 {
+                    XElement categoryName = new XElement("Name", category.Name);
+                    XElement requiredCategories = new XElement("RequiredCategories");
+
+                    XElement xCategory = new XElement("Category",
+                        categoryName, requiredCategories);
+                    xCategory.SetAttributeValue("Id", catId);
+
+                    categoryIds.Add(category, catId);
+                    xRequiredCategories.Add(category, requiredCategories);
+
+                    catId++;
+
+                    xAccountCategories.Add(xCategory);
+                }
+
+                foreach (Category category in account.Categories)
+                {
+                    XElement requiredCategories = xRequiredCategories[category];
+
+                    foreach (Category requiredCategory in category.RequiredCategories)
+                    {
+                        requiredCategories.Add(new XElement("Id", categoryIds[requiredCategory]));
+                    }
+                }
+
+
+                foreach (Transaction transaction in account.Transactions)
+                {
+                    XElement xCategories = new XElement("Categories");
+                    XElement xTransaction = new XElement("Transaction",
+                        new XElement("Amount", transaction.Amount),
+                        new XElement("Date",
+                            new XElement("Day", transaction.Date.Day),
+                            new XElement("Month", transaction.Date.Month),
+                            new XElement("Year", transaction.Date.Year)),
+                        new XElement("Description", transaction.Description),
+                        xCategories);
+
+                    xAccountTransactions.Add(xTransaction);
+
+                    foreach (Category category in transaction.Categories)
+                    {
+                        xCategories.Add(new XElement("Id", categoryIds[category]));
+                    }
                 }
             }
 

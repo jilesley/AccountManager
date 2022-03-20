@@ -16,5 +16,10 @@ namespace AccountManager
         public List<Transaction> Transactions { get; } = new List<Transaction>();
 
         #endregion Properties
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

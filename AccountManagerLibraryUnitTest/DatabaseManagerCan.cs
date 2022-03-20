@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AccountManager;
 using Xunit;
@@ -11,6 +12,8 @@ namespace AccountManager.Library.UnitTest
         #region Fields
 
         private readonly string TestDatabasePath = @"D:\_development folder\AccountManager\AccountManagerLibraryUnitTest\TestDatabase.xml";
+        private readonly string TempDatabasePath = @"C:\Users\James\Downloads\TempDatabase.xml";
+
 
         private Account testAccount;
 
@@ -57,6 +60,19 @@ namespace AccountManager.Library.UnitTest
             Assert.Equal(expTransaction.Date, actTransaction.Date);
             Assert.Equal(expTransaction.Amount, actTransaction.Amount);
             Assert.Contains(actCategory, actTransaction.Categories);
+        }
+
+
+        [Fact(DisplayName = "Update a database correctly")]
+        public void UpdateADatabaseCorrectly()
+        {
+            DatabaseManager.UpdateDatabase(TempDatabasePath, 
+                new List<Account> { GetTestAccount() });
+
+            string actual = File.ReadAllText(TempDatabasePath);
+            string expected = File.ReadAllText(TestDatabasePath);
+
+            Assert.Equal(expected, actual);
         }
 
         private Account GetTestAccount()

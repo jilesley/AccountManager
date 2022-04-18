@@ -6,11 +6,71 @@
         xmlns:local="clr-namespace:AccountManager.WPF.Views"
         xmlns:VM="clr-namespace:AccountManager.WPF.ViewModels"
         mc:Ignorable="d"
-        Title="AddTransactionsView" Height="350" Width="600">
+        Title="AddTransactionsView" Height="350" Width="700">
     <Window.DataContext>
         <VM:AddTransactionsViewModel x:Name="ViewModel"/>
     </Window.DataContext>
-    <Grid>
+    <Grid Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="25"/>
+        </Grid.RowDefinitions>
         
+
+        <TextBlock Text="Input" Grid.Column="0"/>
+
+        <TextBox Grid.Column="0" Grid.Row="2" Grid.RowSpan="3"
+                 TextWrapping="Wrap"
+                 AcceptsReturn="True"
+                 VerticalScrollBarVisibility="Auto"
+                 Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"/>
+
+
+        
+        <TextBlock Text="Output" Grid.Column="2"/>
+
+        <DataGrid Grid.Column="2" Grid.Row="2"  Grid.RowSpan="3"
+                  ItemsSource="{Binding NewTransactions}"
+                  AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Description" 
+                                    Binding="{Binding Description}"
+                                    IsReadOnly="True"/>
+                <DataGridTextColumn Header="Date" 
+                                    Binding="{Binding Date}"
+                                    IsReadOnly="True"/>
+                <DataGridTextColumn Header="Amount" 
+                                    Binding="{Binding Amount}"
+                                    IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="Categories">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+
+
+        <TextBlock Text="Similar" Grid.Column="4"/>
+
+        <ListBox Grid.Column="4" Grid.Row="2"/>
+
+        <Button Content="Add to Database" Grid.Column="4" Grid.Row="4"
+                Command="{Binding AddToDatabaseCommand}"/>
+
     </Grid>
 </Window>

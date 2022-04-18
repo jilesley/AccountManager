@@ -154,6 +154,52 @@ namespace AccountManager
             database.Save(path);
         }
 
+        public static IEnumerable<Transaction> ParseTransactions(string text)
+        {
+            List<Transaction> transactions = new();
+
+
+            if (string.IsNullOrEmpty(text))
+            {
+                throw new ArgumentException("Text cannot be null or empty.", nameof(text));
+            }
+
+
+            char seperator = ',';
+
+            string[] lines = text.Split(Environment.NewLine);
+
+
+
+            foreach (string line in lines)
+            {
+                if (string.IsNullOrEmpty(line))
+                {
+                    continue;
+                }
+
+                int sep1 = line.IndexOf(seperator);
+                int sep2 = line.IndexOf(seperator, sep1 + 1);
+
+                if (sep1 == -1 || sep2 == -1)
+                {
+                    continue;
+                }
+
+                string date = line.Remove(sep1);
+                string description = line.Substring(sep1 + 1, sep2 - sep1 - 1);
+                string amount = line.Substring(sep2 + 1).Replace("\"", "");
+
+                Transaction transaction = new(description, DateTime.Parse(date), decimal.Parse(amount));
+
+
+                transactions.Add(transaction);
+            }
+
+
+            return transactions;
+        }
+
         #endregion Methods
     }
 }

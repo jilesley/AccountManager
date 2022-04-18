@@ -75,6 +75,37 @@ namespace AccountManager.Library.UnitTest
             Assert.Equal(expected, actual);
         }
 
+
+        [Fact(DisplayName = "Convert text into Transactions")]
+        public void ConvertTextToTransactions()
+        {
+            string text =
+@"01/12/2021,Nationwide Flex Savings HtBI BP,-200.00
+01/12/2021,CHELM CITY COUNCIL DD,-168.00
+26/11/2021,CUNDALL LTD CR,""1,911.04""";
+
+            IEnumerable<Transaction> actual = DatabaseManager.ParseTransactions(text);
+
+            IEnumerable<Transaction> expected = new List<Transaction>()
+            {
+                new Transaction(
+                    "Nationwide Flex Savings HtBI BP",
+                    new DateTime(2021, 12, 1),
+                    -200.00m),
+                new Transaction(
+                    "CHELM CITY COUNCIL DD",
+                    new DateTime(2021, 12, 1),
+                    -168.00m),
+                new Transaction(
+                    "CUNDALL LTD CR",
+                    new DateTime(2021, 11, 26),
+                    1911.04m)
+            };
+
+            
+        }
+
+
         private Account GetTestAccount()
         {
             if (testAccount == null)

@@ -1,12 +1,7 @@
 ﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
-using Microsoft.Toolkit.Mvvm.Messaging;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace AccountManager.WPF.ViewModels
@@ -52,7 +47,7 @@ namespace AccountManager.WPF.ViewModels
 
         public void AddToDatabase()
         {
-            WeakReferenceMessenger.Default.Send<;
+            //WeakReferenceMessenger.Default.Send<;
         }
 
         public ICommand AddToDatabaseCommand { get; }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Xml.Linq;
 
 namespace AccountManager
@@ -16,64 +14,69 @@ namespace AccountManager
             List<Account> data = new();
 
 
-            XDocument database = XDocument.Load(path);
-
-            XElement Accounts = database.Root;
-
-            foreach (XElement xAccount in Accounts.Elements())
+            if (File.Exists(path))
             {
-                Account account = new();
+                XDocument database = XDocument.Load(path);
 
-                account.Name = xAccount.Element("Name")?.Value;
-                account.Balance = decimal.Parse(xAccount.Element("Balance").Value);
+                XElement Accounts = database.Root;
 
-
-                Dictionary<int, Category> categoryIds = new Dictionary<int, Category>();
-
-                foreach (XElement xCategory in xAccount.Element("Categories").Elements())
+                foreach (XElement xAccount in Accounts.Elements())
                 {
-                    Category category = new();
+                    Account account = new();
 
-                    category.Name = xCategory.Element("Name")?.Value;
-                    int id = int.Parse(xCategory.Attribute("Id")?.Value);
-                    categoryIds.Add(id, category);
+                    account.Name = xAccount.Element("Name")?.Value;
+                    account.Balance = decimal.Parse(xAccount.Element("Balance").Value);
 
-                    foreach (XElement xRequiredId in xCategory.Element("RequiredCategories").Elements())
+
+                    Dictionary<int, Category> categoryIds = new Dictionary<int, Category>();
+
+                    foreach (XElement xCategory in xAccount.Element("Categories").Elements())
                     {
-                        int requiredId = int.Parse(xRequiredId?.Value);
-                        category.RequiredCategories.Add(categoryIds[requiredId]);
+                        Category category = new();
+
+                        category.Name = xCategory.Element("Name")?.Value;
+                        int id = int.Parse(xCategory.Attribute("Id")?.Value);
+                        categoryIds.Add(id, category);
+
+                        foreach (XElement xRequiredId in xCategory.Element("RequiredCategories").Elements())
+                        {
+                            int requiredId = int.Parse(xRequiredId?.Value);
+                            category.RequiredCategories.Add(categoryIds[requiredId]);
+                        }
+
+                        account.Categories.Add(category);
                     }
 
-                    account.Categories.Add(category);
-                }
 
-
-                foreach (XElement xTransaction in xAccount.Element("Transactions").Elements())
-                {
-                    string description = xTransaction.Element("Description")?.Value;
-                    decimal amount = decimal.Parse(xTransaction.Element("Amount")?.Value);
-
-                    XElement xDate = xTransaction.Element("Date");
-                    DateTime date = new(
-                        int.Parse(xDate.Element("Year")?.Value),
-                        int.Parse(xDate.Element("Month")?.Value),
-                        int.Parse(xDate.Element("Day")?.Value)
-                    );
-
-                    Transaction transaction = new(description, date, amount);
-
-                    foreach (XElement xCategoryId in xTransaction.Element("Categories").Elements())
+                    foreach (XElement xTransaction in xAccount.Element("Transactions").Elements())
                     {
-                        int categoryId = int.Parse(xCategoryId?.Value);
-                        transaction.Categories.Add(categoryIds[categoryId]);
+                        string description = xTransaction.Element("Description")?.Value;
+                        decimal amount = decimal.Parse(xTransaction.Element("Amount")?.Value);
+
+                        XElement xDate = xTransaction.Element("Date");
+                        DateTime date = new(
+                            int.Parse(xDate.Element("Year")?.Value),
+                            int.Parse(xDate.Element("Month")?.Value),
+                            int.Parse(xDate.Element("Day")?.Value)
+                        );
+
+                        Transaction transaction = new(description, date, amount);
+
+                        foreach (XElement xCategoryId in xTransaction.Element("Categories").Elements())
+                        {
+                            int categoryId = int.Parse(xCategoryId?.Value);
+                            transaction.Categories.Add(categoryIds[categoryId]);
+                        }
+
+                        account.Transactions.Add(transaction);
                     }
 
-                    account.Transactions.Add(transaction);
+
+                    data.Add(account);
                 }
-
-
-                data.Add(account);
             }
+
+
 
             return data;
         }
@@ -151,6 +154,10 @@ namespace AccountManager
                 }
             }
 
+            //if (!File.Exists(path))
+            //{
+            //    File.Create(path);
+            //}
             database.Save(path);
         }
 

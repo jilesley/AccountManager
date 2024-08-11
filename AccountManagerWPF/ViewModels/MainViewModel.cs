@@ -1,12 +1,9 @@
 ﻿using AccountManager.WPF.Views;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace AccountManager.WPF.ViewModels
@@ -17,7 +14,7 @@ namespace AccountManager.WPF.ViewModels
         public Account SelectedAccount
         {
             get => selectedAccount;
-            set 
+            set
             {
                 if (SetProperty(ref selectedAccount, value))
                 {
@@ -35,6 +32,7 @@ namespace AccountManager.WPF.ViewModels
         public MainViewModel()
         {
             AddTransactionCommand = new RelayCommand(AddTransaction);
+            AddAccountCommand = new RelayCommand(AddAccount);
 
             UpdateAccounts(@"C:\Users\James\Downloads\TempDatabase.xml");
         }
@@ -64,6 +62,21 @@ namespace AccountManager.WPF.ViewModels
                     Transactions.Add(transaction);
                 }
             }
+        }
+
+
+        public ICommand AddAccountCommand { get; }
+
+
+        public void AddAccount()
+        {
+            Account newAccount = new()
+            {
+                Name = "New Account"
+            };
+
+            Accounts.Add(newAccount);
+            SelectedAccount = newAccount;
         }
 
 

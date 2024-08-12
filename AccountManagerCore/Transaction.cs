@@ -14,6 +14,7 @@
         public DateTime Date { get; }
         public decimal Amount { get; }
         public Account Account { get; }
+        public TypicalTransaction? TypicalTransaction { get; internal set; }
         public string? HumanDescription { get; set; }
     }
 }

@@ -1,8 +1,13 @@
 ﻿namespace AccountManagerCore
 {
-    public class Account(string accountName)
+    public class Account
     {
-        private string name = accountName;
+        internal Account(string accountName)
+        {
+            name = accountName;
+        }
+
+        private string name;
         private decimal initialBalance = 0;
 
         public string Name { get => name; set => name = value; }

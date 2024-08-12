@@ -9,48 +9,108 @@
 
         public TypicalTransactionRepeatType RepeatType { get; }
 
-        private TypicalTransaction(TypicalTransactionRepeatType repeatType, Transaction tran1, Transaction tran2)
+        private TypicalTransaction(TypicalTransactionRepeatType repeatType)
         {
             RepeatType = repeatType;
-            transactions.Add(tran1);
-            transactions.Add(tran2);
         }
 
-        public static IEnumerable<TypicalTransaction> FindTypicalTransactions(IEnumerable<Transaction> transactions)
+
+        public class FindTypicalTransactionResult
         {
-            Dictionary<Transaction, TypicalTransaction?> checkedTransactions = [];
+            internal FindTypicalTransactionResult(bool isNewTypicalTransaction, TypicalTransaction typicalTransaction)
+            {
+                IsNewTypicalTransaction = isNewTypicalTransaction;
+                TypicalTransaction = typicalTransaction;
+            }
+            internal FindTypicalTransactionResult(bool isNewTypicalTransaction, TypicalTransaction typicalTransaction, Transaction transaction)
+            {
+                IsNewTypicalTransaction = isNewTypicalTransaction;
+                TypicalTransaction = typicalTransaction;
+                newTransactions.Add(transaction);
+            }
+
+            private readonly List<Transaction> newTransactions = [];
+            private bool newTransactionsAdded;
+            public bool NewTransactionsAdded { get => newTransactionsAdded; }
+            public bool IsNewTypicalTransaction { get; }
+            public TypicalTransaction TypicalTransaction { get; }
+
+            internal void AddNewTransaction(Transaction transaction) => newTransactions.Add(transaction);
+
+            public IEnumerable<Transaction> GetNewTransactions() => new List<Transaction>(newTransactions);
+
+            public bool Matches(Transaction transaction) => TypicalTransaction.Matches(transaction) ||
+                newTransactions.Any(t => MatchesDescription(t, transaction) && MatchesTiming(TypicalTransaction.RepeatType, t, transaction));
+
+            public bool AddNewTransactionsToTypical()
+            {
+                if (!newTransactionsAdded)
+                {
+                    TypicalTransaction.transactions.AddRange(newTransactions);
+                    newTransactionsAdded = true;
+                    return true;
+                }
+                return false;
+            }
+        }
+
+
+        public static IEnumerable<FindTypicalTransactionResult> FindTypicalTransactions(IEnumerable<Transaction> transactions, IEnumerable<TypicalTransaction> existingTypicalTransactions)
+        {
+            List<FindTypicalTransactionResult> results = [];
+            List<Transaction> checkedNonTypicalTransactions = [];
+
+            // Add all existing typical transactions to the results
+            foreach (TypicalTransaction typTran in existingTypicalTransactions)
+                results.Add(new(false, typTran));
 
             foreach (Transaction transaction in transactions)
             {
-                Transaction? similarTransaction = checkedTransactions.Keys.FirstOrDefault(t => MatchesDescription(t, transaction));
-
-                TypicalTransaction? typicalTransaction = null;
-
-                // If a transaction with a matching description is found...
-                if (similarTransaction != null)
+                // If the transaction doesn't have a typical transaction...
+                if (transaction.TypicalTransaction == null)
                 {
-                    // ...find the ascosiated typical transaction...
-                    typicalTransaction = checkedTransactions[similarTransaction];
-                    TypicalTransactionRepeatType repeatType = TypicalTransactionRepeatType.None;
+                    // ...see if it matches any existing ones in the results...
+                    FindTypicalTransactionResult? matchingResult = results.FirstOrDefault(tt => tt.Matches(transaction));
 
-                    // ...check if they have a repeating patern...
-                    if (similarTransaction.Date.Day == transaction.Date.Day)
-                        repeatType |= TypicalTransactionRepeatType.Day;
-                    if (similarTransaction.Date.DayOfWeek == transaction.Date.DayOfWeek)
-                        repeatType |= TypicalTransactionRepeatType.Weekday;
+                    if (matchingResult != null)
+                    {
+                        // ...if it does add it as a new transaction...
+                        matchingResult.AddNewTransaction(transaction);
+                    }
+                    else
+                    {
+                        // ...else check if any of the checked non typical transaction have a matching description...
+                        IEnumerable<Transaction> similarTransactions = checkedNonTypicalTransactions.Where(t => MatchesDescription(t, transaction));
 
-                    // ...if there isn't an ascosiated typical transaction create one... 
-                    if (typicalTransaction == null)
-                        typicalTransaction = new(repeatType, similarTransaction, transaction);
-                    // ...if the transaction exists and has the same repeating pattern add the transaction
-                    else if (repeatType.HasFlag(typicalTransaction.RepeatType))
-                        typicalTransaction.AddTransaction(transaction);
+                        foreach (Transaction simTran in similarTransactions)
+                        {
+                            // ...for any that match; check if they have a matching repeat type...
+                            TypicalTransactionRepeatType? repeatType = MatchingRepeatType(simTran, transaction);
+
+                            if (repeatType != null)
+                            {
+                                // ...if they do; create a new typical transaction add it to the results and add the transactions...
+                                matchingResult = new(true, new(repeatType.Value));
+                                matchingResult.AddNewTransaction(transaction);
+                                matchingResult.AddNewTransaction(simTran);
+
+                                results.Add(matchingResult);
+
+                                // ...remove the similar transactions from the checked non typical transactions...
+                                checkedNonTypicalTransactions.Remove(simTran);
+
+                                // ...and stop cycling through the similar transactions
+                                break;
+                            }
+                        }
+                    }
+
+                    if (matchingResult == null)
+                        checkedNonTypicalTransactions.Add(transaction);
                 }
-
-                checkedTransactions.Add(transaction, typicalTransaction);
             }
 
-            return checkedTransactions.Values.Where(t => t != null).Distinct()!;
+            return results;
         }
 
         private static bool MatchesDescription(Transaction transaction1, Transaction transaction2)
@@ -65,20 +125,78 @@
             return false;
         }
 
+        private static bool MatchesTiming(TypicalTransactionRepeatType repeatType, Transaction transaction1, Transaction transaction2)
+        {
+            switch (repeatType)
+            {
+                case TypicalTransactionRepeatType.None:
+                    return true;
+
+                case TypicalTransactionRepeatType.Day:
+                    if (transaction1.Date.Day == transaction2.Date.Day)
+                        return true;
+                    break;
+
+                case TypicalTransactionRepeatType.Weekday:
+                    if (transaction1.Date.DayOfWeek == transaction2.Date.DayOfWeek)
+                        return true;
+                    break;
+
+                default:
+                    throw new NotImplementedException();
+            }
+
+            return false;
+        }
+
+        private static TypicalTransactionRepeatType? MatchingRepeatType(Transaction transaction1, Transaction transaction2)
+        {
+            foreach (TypicalTransactionRepeatType repeatType in Enum.GetValues(typeof(TypicalTransactionRepeatType)))
+            {
+                if (repeatType != TypicalTransactionRepeatType.None && MatchesTiming(repeatType, transaction1, transaction2))
+                    return repeatType;
+            }
+
+            if (MatchesTiming(TypicalTransactionRepeatType.None, transaction1, transaction1))
+                return TypicalTransactionRepeatType.None;
+
+            return null;
+        }
+
+        private bool Matches(Transaction transaction)
+            => transactions.Any(t => MatchesDescription(t, transaction)) && MatchesTiming(RepeatType, transactions.First(), transaction);
+
 
         public IEnumerable<Transaction> GetTransactions() => new List<Transaction>(transactions);
 
         public bool AddTransaction(Transaction transaction)
         {
-            if (!transactions.Contains(transaction))
+            if (!transactions.Contains(transaction) && transaction.TypicalTransaction == null)
             {
                 transactions.Add(transaction);
+                transaction.TypicalTransaction = this;
                 return true;
             }
             return false;
         }
 
-        public bool RemoveTransaction(Transaction transaction) => transactions.Remove(transaction);
+        public void AddTransaction(IEnumerable<Transaction> transactions)
+        {
+            foreach (Transaction transaction in transactions)
+            {
+                AddTransaction(transaction);
+            }
+        }
+
+        public bool RemoveTransaction(Transaction transaction)
+        {
+            if (transactions.Remove(transaction))
+            {
+                transaction.TypicalTransaction = null;
+                return true;
+            }
+            return false;
+        }
 
 
 
@@ -132,9 +250,9 @@
     [Flags]
     public enum TypicalTransactionRepeatType
     {
-        None = 0, // No repeating patern can be found
-        Day = 1, // Repeats on the same day of a month
-        Weekday = 2, // Repeats on the same weekday
+        None = 1, // No repeating patern can be found
+        Day = 2, // Repeats on the same day of a month
+        Weekday = 4, // Repeats on the same weekday
     }
 
     public enum TypicalTransactionValueType

@@ -110,5 +110,74 @@
                 Assert.That(result.GetTransactions().Count, Is.EqualTo(2));
             }
         }
+
+        private TypicalTransaction AddAverageTestTransactions()
+        {
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 1, 1), -5);
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 2, 1), -3);
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 3, 1), -3);
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 4, 1), 10);
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 5, 1), 12);
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 6, 1), 14);
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 7, 1), 12);
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 8, 1), 12);
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 9, 1), 100);
+            SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, 10, 1), -100);
+
+            var results = AccountManager.AddTypicalTransactions(TypicalTransaction.FindTypicalTransactions(SampleAcount.GetTransactions(), []));
+
+            return results.First();
+        }
+
+        [Test]
+        public void GetCorrectMedian()
+        {
+            TypicalTransaction actual = AddAverageTestTransactions();
+
+            Assert.That(actual.GetMedian(), Is.EqualTo(12));
+        }
+
+        [Test]
+        public void GetCorrectMode()
+        {
+            TypicalTransaction actual = AddAverageTestTransactions();
+
+            Assert.That(actual.GetMode(), Is.EqualTo(4.9));
+        }
+
+        [Test]
+        public void GetCorrectMax()
+        {
+            TypicalTransaction actual = AddAverageTestTransactions();
+
+            Assert.That(actual.GetMax(), Is.EqualTo(100));
+        }
+
+        [Test]
+        public void GetCorrectMin()
+        {
+            TypicalTransaction actual = AddAverageTestTransactions();
+
+            Assert.That(actual.GetMin(), Is.EqualTo(-100));
+        }
+
+        [Test]
+        public void GetModeWhenAllTransactionsHaveDifferentAmountsAndGetMedianIsUsed()
+        {
+            int total = 0;
+            for (int i = 1; i <= 10; i++)
+            {
+                SampleAcount.AddTransaction(SampleTransactionDescription, new(2024, i, 1), i);
+                total += i;
+            }
+
+            var results = AccountManager.AddTypicalTransactions(TypicalTransaction.FindTypicalTransactions(SampleAcount.GetTransactions(), []));
+
+            TypicalTransaction actual = results.First();
+
+            double expected = total / 10.0;
+
+            Assert.That(actual.GetMedian(), Is.EqualTo(expected));
+        }
     }
 }
